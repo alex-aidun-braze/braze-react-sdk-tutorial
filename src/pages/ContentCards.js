@@ -1,10 +1,15 @@
+// @ts-check
+
 import React, { useEffect } from 'react';
 import styled from 'styled-components';
 import CustomContentCard from '../components/CustomContentCard';
+import * as braze from "@braze/web-sdk"
 
 function ContentCards({ cards }) {
 
     useEffect(() => {
+        debugger;
+        braze.showContentCards(document.getElementById('content-cards'));
 
     }, [])
 
@@ -13,6 +18,9 @@ function ContentCards({ cards }) {
             <Feed>
                 <div>Custom Feed</div>
                 <Cards>
+                    {cards.filter(card => card.extras['feed'] == 'custom').map(card => 
+                        <CustomContentCard key={card.id} imageUrl={card.imageURL} title={card.title} description={card.description} />
+                    )}
                 </Cards>
             </Feed>
             <Feed>

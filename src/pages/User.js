@@ -1,7 +1,10 @@
+// @ts-check
+
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import TitledInputBox from '../components/TitledInputBox';
 import KeyValueInputBox from '../components/KeyValueInputBox';
+import * as braze from "@braze/web-sdk";
 
 function User() {
     const [firstName, setFirstName] = useState('')
@@ -31,20 +34,71 @@ function User() {
     const [purchasePropertyValue, setPurchasePropertyValue] = useState('')
 
     const setStandardAttributes = () => {
+        if (setFirstName) {
+            braze.getUser().setFirstName(firstName)
+        }
+
+        if (setLastName){
+            braze.getUser().setLastName(lastName)  
+        }
+
+        if (dateOfBirth) {
+            let splitDateOfBirth = dateOfBirth.split('/')
+            braze.getUser().setDateOfBirth(parseInt(splitDateOfBirth[2]), parseInt(splitDateOfBirth[0]), parseInt(splitDateOfBirth[1]))
+        }
 
     }
 
     const setCustomAttribute = () => {
+        if (customAttributeKey && customAttributeValue) {
+            braze.getUser().setCustomUserAttribute(setCustomAttributeKey, setCustomAttributeValue)
+        }
 
     }
 
     const setCustomEvent = () => {
+        if (eventName) {
+            if (eventPropertyName && eventPropertyValue) {
+                let eventProperties = {}
+                eventProperties[eventPropertyName] = eventPropertyValue
+
+                braze.logCustomEvent(eventName, eventProperties)
+            }
+            else {
+                braze.logCustomEvent(eventName)
+            }
+        }
 
     }
 
     const setPurchaseEvent = () => {
+        if (productId && price) {
+            if (purchasePropertyName && purchasePropertyValue) {
+                let purchaseProperties = {}
+                purchaseProperties[purchasePropertyName] = purchasePropertyValue
+
+                braze.logPurchase(productId, price, currencyCode, quantity, purchaseProperties)
+            }
+            else {
+                braze.logPurchase(productId, price, currencyCode, quantity)
+            }
+        }
 
     }
+
+    const handleRegisterPushClick = async () => {
+    const {
+      requestPushPermission,
+      logCustomEvent,
+      requestImmediateDataFlush
+    } = await import(
+      "@braze/web-sdk"
+    );
+    requestPushPermission(() => {
+      logCustomEvent("send me push");
+      requestImmediateDataFlush();
+    });
+  };
 
     return (
         <UserContainer>
@@ -62,6 +116,7 @@ function User() {
                 <TitledInputBox title={'Push Sub'} v={pushNotificationSubscriptionType} setV={setPushNotificationSubscriptionType} />
                 <TitledInputBox title={'Email Sub'} v={emailNotificationSubscriptionType} setV={setEmailNotificationSubscriptionType} />
                 <Button onClick={setStandardAttributes}>Submit</Button>
+                <Button onClick={handleRegisterPushClick}>Push</Button>
                 <Title>Custom Attributes</Title>
                 <KeyValueInputBox k={customAttributeKey} setK={setCustomAttributeKey} v={customAttributeValue} setV={setCustomAttributeValue} />
                 <Button onClick={setCustomAttribute}>Submit</Button>
